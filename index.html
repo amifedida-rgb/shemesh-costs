@@ -339,6 +339,17 @@
     .pack-btn{padding:7px 12px;font-size:12px}
   }
 
+  /* MODALE PARAMÈTRES */
+  .stab{padding:14px 20px;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;display:flex;align-items:center;gap:6px}
+  .stab.active{color:var(--navy);border-bottom-color:var(--sun)}
+  .stab:hover{color:var(--navy)}
+  .s-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:4px}
+  .s-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:#fff;outline:none;transition:border-color .2s}
+  .s-input:focus{border-color:var(--navy)}
+  select.s-input{appearance:auto}
+  .s-save-feedback{font-size:12px;font-weight:600;color:var(--green);min-height:18px;transition:opacity .3s}
+
+  /* PDF BAR */
   .pdf-bar{background:var(--navy);padding:16px 32px;display:flex;align-items:center;justify-content:center;border-top:3px solid var(--sun)}
   .fab-pdf{background:var(--sun);color:var(--navy);border:none;border-radius:10px;padding:13px 36px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(245,166,35,0.35);transition:all .2s;letter-spacing:.02em}
   .fab-pdf:hover{background:#fff;transform:translateY(-1px)}
@@ -382,14 +393,8 @@
     </div>
     <div class="modal-body">
 
-      <!-- ONGLETS -->
-      <div class="modal-tabs">
-        <button class="mtab active" onclick="switchTab('tab-analyse')">⚡ Analyser une facture</button>
-        <button class="mtab" onclick="switchTab('tab-settings')">⚙️ Clé API</button>
-      </div>
-
-      <!-- PANEL ANALYSE -->
-      <div class="mtab-panel active" id="tab-analyse">
+      <!-- PANEL ANALYSE UNIQUEMENT -->
+      <div id="tab-analyse">
 
       <!-- UPLOAD -->
       <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
@@ -478,40 +483,138 @@
 
       </div><!-- /tab-analyse -->
 
-      <!-- PANEL SETTINGS -->
-      <div class="mtab-panel" id="tab-settings">
-        <div style="background:#FFF3DC;border-radius:12px;padding:16px 18px;margin-bottom:20px;border:1.5px solid #F5A623">
-          <div style="font-size:12px;font-weight:700;color:#B45309;margin-bottom:4px">🔑 Clé API Anthropic</div>
-          <div style="font-size:12px;color:#92400E;line-height:1.6">Saisie une fois, sauvegardée dans ton navigateur (localStorage). Elle ne quitte jamais ton appareil.</div>
-        </div>
-
-        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:6px">Clé API Anthropic</label>
-        <div class="api-key-field">
-          <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." oninput="onApiKeyInput(this.value)" autocomplete="off">
-          <button class="api-key-eye" onclick="toggleKeyVisibility()" id="eye-btn">👁</button>
-        </div>
-        <div class="api-key-status" id="api-key-status"></div>
-
-        <button class="btn-save-key" onclick="saveApiKey()">💾 Sauvegarder la clé</button>
-
-        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-          <div style="font-size:11px;color:var(--muted);line-height:1.8">
-            <strong>Obtenir une clé :</strong> <a href="https://console.anthropic.com/keys" target="_blank" style="color:var(--blue)">console.anthropic.com/keys</a><br>
-            La clé est stockée uniquement dans ce navigateur via <code style="font-size:10px;background:var(--bg);padding:1px 5px;border-radius:4px">localStorage</code>.<br>
-            <span style="color:#E05252">⚠️ Ne partage jamais ta clé avec personne.</span>
-          </div>
-        </div>
-
-        <div style="margin-top:16px;padding:12px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px">Statut actuel</div>
-          <div style="font-size:13px;font-weight:600" id="key-current-status">—</div>
-        </div>
-      </div><!-- /tab-settings -->
-
     </div>
   </div>
 </div>
-<!-- /modale -->
+<!-- /modale IEC -->
+
+<!-- ═══════════════════ MODALE PARAMÈTRES ═══════════════════ -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal-box" style="max-width:700px">
+
+    <!-- HEADER -->
+    <div class="modal-header" style="border-radius:20px 20px 0 0;padding:20px 24px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:44px;height:44px;background:var(--sun);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">☀️</div>
+        <div>
+          <div style="color:rgba(255,255,255,0.5);font-size:11px">Shemesh Energy · שמש אנרגיה</div>
+          <div style="font-family:'DM Serif Display',serif;color:#fff;font-size:20px">Paramètres</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <!-- ONGLETS -->
+    <div style="display:flex;background:#fff;border-bottom:1px solid var(--border);padding:0 24px">
+      <button class="stab active" id="stab-profil" onclick="switchStab('profil')">🏢 Société</button>
+      <button class="stab" id="stab-api" onclick="switchStab('api')">✨ IA &amp; API <span id="stab-api-badge"></span></button>
+    </div>
+
+    <div style="padding:24px;overflow-y:auto;max-height:calc(90vh - 140px)">
+
+      <!-- ══ PANEL SOCIÉTÉ ══ -->
+      <div id="spanel-profil">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div>
+            <label class="s-label">Nom de la société</label>
+            <input class="s-input" id="s-nom" placeholder="Shemesh Energy" oninput="autoSaveSettings()">
+          </div>
+          <div>
+            <label class="s-label">N° SIRET / Teudat Zehut</label>
+            <input class="s-input" id="s-siret" placeholder="12345678901234" oninput="autoSaveSettings()">
+          </div>
+          <div>
+            <label class="s-label">Adresse</label>
+            <input class="s-input" id="s-adresse" placeholder="12 rue HaYarkon, Netanya" oninput="autoSaveSettings()">
+          </div>
+          <div>
+            <label class="s-label">Ville / Code postal</label>
+            <input class="s-input" id="s-ville" placeholder="42100 Netanya" oninput="autoSaveSettings()">
+          </div>
+          <div>
+            <label class="s-label">Téléphone</label>
+            <input class="s-input" id="s-tel" placeholder="+972 9 xxx xxxx" oninput="autoSaveSettings()">
+          </div>
+          <div>
+            <label class="s-label">Email</label>
+            <input class="s-input" id="s-email" placeholder="contact@shemesh.co.il" oninput="autoSaveSettings()">
+          </div>
+          <div>
+            <label class="s-label">Site web</label>
+            <input class="s-input" id="s-web" placeholder="www.shemesh-energy.co.il" oninput="autoSaveSettings()">
+          </div>
+          <div>
+            <label class="s-label">TVA (%)</label>
+            <input class="s-input" id="s-tva" placeholder="17" type="number" oninput="autoSaveSettings()">
+          </div>
+        </div>
+        <div>
+          <label class="s-label">Notes / Mentions légales (PDF, devis)</label>
+          <textarea class="s-input" id="s-notes" rows="3" placeholder="Garantie 25 ans panneaux · Garantie 10 ans pose · RCS Netanya …" style="resize:vertical" oninput="autoSaveSettings()"></textarea>
+        </div>
+        <div class="s-save-feedback" id="s-save-feedback"></div>
+      </div>
+
+      <!-- ══ PANEL IA & API ══ -->
+      <div id="spanel-api" style="display:none">
+
+        <!-- Bandeau sécurité -->
+        <div style="background:linear-gradient(135deg,#EFF6FF,#E8F7F1);border:1.5px solid #A7D3F3;border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start">
+          <div style="font-size:20px;flex-shrink:0">🔒</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px">Réservé à l'administrateur</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6">La clé API est stockée uniquement dans <strong>ce navigateur</strong> (localStorage). Elle ne transite jamais par un serveur externe.</div>
+          </div>
+        </div>
+
+        <!-- Clé API -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:6px">✨ Clé API Anthropic</div>
+          <label class="s-label">Clé API <span style="color:#E05252;font-weight:700" id="api-required-lbl">· requise pour l'analyse IA</span></label>
+          <div class="api-key-field" style="margin-top:6px">
+            <input type="password" id="api-key-input" class="s-input" style="padding-right:44px" placeholder="sk-ant-api03-…" oninput="onApiKeyInput(this.value)" autocomplete="off">
+            <button class="api-key-eye" onclick="toggleKeyVisibility()" id="eye-btn">👁</button>
+          </div>
+          <div class="api-key-status" id="api-key-status" style="margin-top:6px"></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.7">
+            Créer une clé sur <a href="https://console.anthropic.com/keys" target="_blank" style="color:var(--blue)">console.anthropic.com/keys</a> · <span style="color:#E05252">Ne partage jamais ta clé</span>
+          </div>
+        </div>
+
+        <!-- Modèle + Budget -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);margin-bottom:10px">Modèle IA</div>
+            <label class="s-label">Modèle utilisé</label>
+            <select class="s-input" id="s-model" onchange="autoSaveSettings()" style="margin-top:6px;cursor:pointer">
+              <option value="claude-sonnet-4-6">Claude Sonnet 4.6 — Rapide (recommandé)</option>
+              <option value="claude-opus-4-6">Claude Opus 4.6 — Précision max</option>
+              <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 — Ultra rapide</option>
+            </select>
+          </div>
+          <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);margin-bottom:10px">Budget mensuel</div>
+            <label class="s-label">Plafond (₪/mois)</label>
+            <input class="s-input" id="s-budget" type="number" placeholder="200" style="margin-top:6px" oninput="autoSaveSettings()">
+            <div style="font-size:10px;color:var(--muted);margin-top:6px">Indicatif · ~0,50₪ par analyse</div>
+          </div>
+        </div>
+
+        <!-- Statut clé -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Statut actuel</div>
+          <div style="font-size:14px;font-weight:600" id="key-current-status">—</div>
+        </div>
+
+        <!-- Bouton sauvegarder clé -->
+        <button class="btn-save-key" onclick="saveApiKey()">💾 Sauvegarder la clé API</button>
+        <div class="s-save-feedback" id="api-save-feedback" style="margin-top:10px"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /modale paramètres -->
 
 <div class="sticky-top"><div class="header">
   <div class="brand">
@@ -527,8 +630,8 @@
     <button class="btn-facture" onclick="openModal()">
       <span class="bficon">⚡</span> Importer facture IEC
     </button>
-    <button class="btn-facture" onclick="openModal();switchTab('tab-settings')" style="background:rgba(255,255,255,0.15);color:#fff;box-shadow:none;border:1.5px solid rgba(255,255,255,0.25)">
-      ⚙️ Clé API
+    <button class="btn-facture" onclick="openSettings()" style="background:rgba(255,255,255,0.12);color:#fff;box-shadow:none;border:1.5px solid rgba(255,255,255,0.2)">
+      ⚙️ Paramètres
     </button>
   </div>
 </div>
@@ -830,35 +933,75 @@ let uploadedBase64=null;
 let uploadedType=null;
 
 // ═══════════════════════════════════════════════════════
-// GESTION CLÉ API
+// GESTION CLÉ API & PARAMÈTRES
 // ═══════════════════════════════════════════════════════
 const LS_KEY='shemesh_anthropic_key';
+const LS_SETTINGS='shemesh_settings';
 
 function getApiKey(){
-  return localStorage.getItem(LS_KEY)||'';
+  return (localStorage.getItem(LS_KEY)||'').trim();
+}
+
+function loadSettings(){
+  try{
+    const s=JSON.parse(localStorage.getItem(LS_SETTINGS)||'{}');
+    const fields=['nom','siret','adresse','ville','tel','email','web','tva','notes','model','budget'];
+    fields.forEach(f=>{
+      const el=document.getElementById('s-'+f);
+      if(el&&s[f]!==undefined) el.value=s[f];
+    });
+    // Modèle par défaut
+    const mdl=document.getElementById('s-model');
+    if(mdl&&!s.model) mdl.value='claude-sonnet-4-6';
+  }catch(e){}
+}
+
+function autoSaveSettings(){
+  const s={};
+  ['nom','siret','adresse','ville','tel','email','web','tva','notes','model','budget'].forEach(f=>{
+    const el=document.getElementById('s-'+f);
+    if(el) s[f]=el.value;
+  });
+  localStorage.setItem(LS_SETTINGS,JSON.stringify(s));
+  const fb=document.getElementById('s-save-feedback');
+  if(fb){fb.textContent='✓ Sauvegardé';setTimeout(()=>fb.textContent='',2000);}
+}
+
+function getModel(){
+  try{
+    const s=JSON.parse(localStorage.getItem(LS_SETTINGS)||'{}');
+    return s.model||'claude-sonnet-4-6';
+  }catch(e){return 'claude-sonnet-4-6';}
 }
 
 function saveApiKey(){
   const val=document.getElementById('api-key-input').value.trim();
-  if(!val){alert('Saisis une clé avant de sauvegarder.');return;}
-  if(!val.startsWith('sk-ant-')){alert('Format invalide — la clé doit commencer par sk-ant-');return;}
+  if(!val){showApiFeedback('⚠️ Saisis une clé avant de sauvegarder','#E05252');return;}
+  if(!val.startsWith('sk-ant-')){showApiFeedback('⚠️ Format invalide — doit commencer par sk-ant-','#E05252');return;}
   localStorage.setItem(LS_KEY,val);
   updateKeyStatus();
-  const btn=document.querySelector('.btn-save-key');
-  btn.textContent='✅ Clé sauvegardée !';
-  setTimeout(()=>btn.textContent='💾 Sauvegarder la clé',2000);
+  showApiFeedback('✅ Clé sauvegardée avec succès','#2D9E6B');
+  updateSettingsBadge();
+}
+
+function showApiFeedback(msg,color){
+  const fb=document.getElementById('api-save-feedback');
+  if(!fb)return;
+  fb.textContent=msg;
+  fb.style.color=color;
+  setTimeout(()=>fb.textContent='',3000);
 }
 
 function onApiKeyInput(val){
   const inp=document.getElementById('api-key-input');
   const status=document.getElementById('api-key-status');
-  if(!val){inp.className='';status.innerHTML='';return;}
+  if(!val){inp.className='s-input';status.innerHTML='';return;}
   if(val.startsWith('sk-ant-')&&val.length>20){
-    inp.classList.add('valid');inp.classList.remove('invalid');
+    inp.style.borderColor='var(--green)';
     status.innerHTML='<span class="status-ok">✓ Format valide</span>';
   } else {
-    inp.classList.add('invalid');inp.classList.remove('valid');
-    status.innerHTML='<span class="status-err">Format incorrect — doit commencer par sk-ant-</span>';
+    inp.style.borderColor='#E05252';
+    status.innerHTML='<span class="status-err">Format incorrect</span>';
   }
 }
 
@@ -872,36 +1015,67 @@ function toggleKeyVisibility(){
 function updateKeyStatus(){
   const key=getApiKey();
   const el=document.getElementById('key-current-status');
+  const lbl=document.getElementById('api-required-lbl');
   if(!el)return;
   if(key&&key.startsWith('sk-ant-')){
-    el.innerHTML='<span style="color:var(--green)">✅ Clé configurée — '+key.substring(0,14)+'…'+key.slice(-4)+'</span>';
+    el.innerHTML='<span style="color:var(--green)">✅ Clé configurée — '+key.substring(0,16)+'…'+key.slice(-4)+'</span>';
+    if(lbl) lbl.style.display='none';
   } else {
     el.innerHTML='<span style="color:#E05252">❌ Aucune clé — analyse IA désactivée</span>';
+    if(lbl) lbl.style.display='';
+  }
+  updateSettingsBadge();
+}
+
+function updateSettingsBadge(){
+  const badge=document.getElementById('stab-api-badge');
+  if(!badge)return;
+  const key=getApiKey();
+  if(!key||!key.startsWith('sk-ant-')){
+    badge.innerHTML='<span style="background:#E05252;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px">!</span>';
+  } else {
+    badge.innerHTML='<span style="background:var(--green);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px">✓</span>';
   }
 }
 
-function switchTab(tabId){
-  document.querySelectorAll('.mtab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  const idx=tabId==='tab-analyse'?0:1;
-  document.querySelectorAll('.mtab')[idx].classList.add('active');
-  if(tabId==='tab-settings'){
+function switchStab(tab){
+  document.getElementById('spanel-profil').style.display=tab==='profil'?'block':'none';
+  document.getElementById('spanel-api').style.display=tab==='api'?'block':'none';
+  document.getElementById('stab-profil').classList.toggle('active',tab==='profil');
+  document.getElementById('stab-api').classList.toggle('active',tab==='api');
+  if(tab==='api'){
     const key=getApiKey();
     const inp=document.getElementById('api-key-input');
-    if(key)inp.value=key;
+    if(key) inp.value=key;
     updateKeyStatus();
   }
 }
 
+function openSettings(){
+  document.getElementById('settings-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+  loadSettings();
+  updateKeyStatus();
+  updateSettingsBadge();
+  // Si pas de clé → ouvrir directement sur IA
+  if(!getApiKey()) switchStab('api');
+  else switchStab('profil');
+}
+
+function closeSettings(){
+  document.getElementById('settings-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+document.getElementById('settings-modal').addEventListener('click',function(e){
+  if(e.target===this) closeSettings();
+});
+
+function switchTab(tabId){} // legacy — plus utilisé
+
 function openModal(){
   document.getElementById('iec-modal').classList.add('open');
   document.body.style.overflow='hidden';
-  // Vérifier si clé présente
-  if(!getApiKey()){
-    switchTab('tab-settings');
-  }
-  updateKeyStatus();
 }
 
 function closeModal(){
@@ -1008,8 +1182,9 @@ async function analyserFacture(){
 
   // Vérifier clé API
   if(!getApiKey()){
-    switchTab('tab-settings');
-    alert('⚠️ Configure ta clé API Anthropic dans l\'onglet ⚙️ Clé API avant d\'analyser.');
+    closeModal();
+    setTimeout(()=>openSettings(),100);
+    setTimeout(()=>switchStab('api'),200);
     return;
   }
 
@@ -1041,7 +1216,7 @@ async function analyserFacture(){
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body:JSON.stringify({
-        model:'claude-sonnet-4-6',
+        model:getModel(),
         max_tokens:1500,
         system:SYSTEM_PROMPT,
         messages:[{
@@ -1058,7 +1233,8 @@ async function analyserFacture(){
 
     if(!response.ok){
       const err=await response.json();
-      throw new Error(err.error?.message||'Erreur API');
+      console.error('API error:', err);
+      throw new Error(err.error?.message||'Erreur '+response.status);
     }
 
     const data=await response.json();
@@ -1082,10 +1258,10 @@ async function analyserFacture(){
     document.getElementById('btn-analyse').disabled=false;
     
     // Si pas de clé API, afficher message d'aide
-    if(err.message.includes('401')||err.message.includes('403')||err.message.includes('key')){
+    if(err.message.includes('401')||err.message.includes('403')||err.message.includes('auth')){
       closeModal();
-      setTimeout(()=>{openModal();switchTab('tab-settings');},100);
-      alert('⚠️ Clé API manquante ou invalide.\n\nTu vas être redirigé vers l\'onglet ⚙️ Clé API.');
+      setTimeout(()=>openSettings(),100);
+      setTimeout(()=>switchStab('api'),200);
     } else {
       alert('❌ Erreur : '+err.message);
     }
@@ -1546,6 +1722,7 @@ function render(){
 // INIT
 initSlider();
 render();
+updateSettingsBadge();
 </script>
 </body>
 </html>
