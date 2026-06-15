@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shemesh Energy — Structure des Coûts</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+  :root {
+    --navy:#1E3A5F; --sun:#F5A623;
+    --green:#2D9E6B; --green-light:#E8F7F1;
+    --blue:#3B82F6; --purple:#8B5CF6; --orange:#F59E0B; --tva:#F97316;
+    --bg:#F8F9FB; --card:#fff; --text:#1A2B3C; --muted:#6B7C8D; --border:#E2E8F0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{height:100%}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100%;display:flex;flex-direction:column;overflow:hidden;max-width:100%}
+  .sticky-top{flex-shrink:0}
+  .scroll-zone{flex:1;overflow-y:auto;overflow-x:hidden}
+
+  .header{background:var(--navy);padding:20px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;background:var(--sun);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .brand-name{font-family:'DM Serif Display',serif;color:#fff;font-size:20px}
+  .brand-name span{color:var(--sun)}
+  .brand-sub{color:rgba(255,255,255,0.45);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+  .header-meta{text-align:right;color:rgba(255,255,255,0.55);font-size:11px;line-height:1.9}
+  .header-meta strong{color:var(--sun);font-size:13px}
+
+  /* SELECTOR ZONE */
+  .selector-zone{background:var(--navy);border-top:1px solid rgba(255,255,255,0.08);padding:14px 32px 20px;box-shadow:0 6px 20px rgba(0,0,0,0.3)}
+  .selector-label{color:rgba(255,255,255,0.4);font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+  .pack-row{display:flex;flex-wrap:wrap;gap:8px}
+  .pack-btn{padding:8px 18px;border-radius:20px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+  .pack-btn:hover{border-color:var(--sun);color:var(--sun)}
+  .pack-btn.active{background:var(--sun);border-color:var(--sun);color:var(--navy);font-weight:700}
+
+  /* TOGGLES ROW */
+  .toggles-row{margin-top:16px;display:flex;flex-wrap:wrap;gap:20px;align-items:center}
+  .tgl-group{display:flex;align-items:center;gap:10px}
+  .tgl-label{color:rgba(255,255,255,0.5);font-size:12px;white-space:nowrap}
+  .tgl-track{width:52px;height:26px;border-radius:13px;background:rgba(255,255,255,0.15);position:relative;cursor:pointer;transition:background .25s;border:none;flex-shrink:0}
+  .tgl-track.on{background:var(--green)}
+  .tgl-track.on-orange{background:var(--orange)}
+  .tgl-track.on-blue{background:var(--blue)}
+  .tgl-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .25s;pointer-events:none}
+  .tgl-track.on .tgl-knob,.tgl-track.on-orange .tgl-knob,.tgl-track.on-blue .tgl-knob{left:29px}
+  .tgl-tag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:10px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);transition:all .2s;white-space:nowrap}
+  .tgl-tag.on{background:var(--green);color:#fff}
+  .tgl-tag.on-orange{background:var(--orange);color:#1A2B3C}
+  .tgl-tag.on-blue{background:var(--blue);color:#fff}
+  .tgl-sep{width:1px;height:24px;background:rgba(255,255,255,0.15)}
+
+  /* MAIN */
+  .main{padding:28px 32px;max-width:1380px;margin:0 auto;box-sizing:border-box;width:100%}
+
+  /* KPI ROW */
+  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+  .kpi{background:var(--card);border-radius:12px;padding:16px 18px;border:1px solid var(--border);position:relative;overflow:hidden;transition:opacity .3s}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--k-color,var(--navy))}
+  .kpi-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .kpi-val{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);line-height:1}
+  .kpi-badge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:rgba(0,0,0,0.05);color:var(--k-color,var(--navy))}
+  .kpi.dimmed{opacity:.4}
+
+  /* GRID */
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px}
+
+  /* CARD */
+  .card{background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;transition:opacity .3s}
+  .card.dimmed{opacity:.35;pointer-events:none}
+  .card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+  .card-head.no-collapse{cursor:default}
+  .card-title{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--navy);display:flex;align-items:center;gap:6px}
+  .card-total{font-family:'DM Serif Display',serif;font-size:18px;color:var(--navy);display:flex;align-items:center;gap:10px}
+  .collapse-btn{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);flex-shrink:0;transition:all .2s}
+  .card-head:not(.no-collapse):hover .collapse-btn{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .card-body{padding:18px 20px}
+  .card-body.collapsed{display:none}
+  .marge-detail.collapsed{display:none!important}
+
+  /* TABLE */
+  .dtable{width:100%;border-collapse:collapse}
+  .dtable tr{border-bottom:1px solid var(--border)}
+  .dtable tr:last-child{border-bottom:none}
+  .dtable td{padding:8px 3px;font-size:12px;vertical-align:middle}
+  .dtable td:nth-child(2){color:var(--muted);text-align:center;font-size:11px}
+  .dtable td:last-child{text-align:right;font-weight:600;color:var(--navy);white-space:nowrap}
+  .dtable .sub td{padding-top:11px;font-weight:700;font-size:12px;border-top:2px solid var(--border)}
+  .dtable .sub td:last-child{color:var(--sun)}
+
+  /* PRICE STACK */
+  .prow{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:8px;margin-bottom:5px;transition:opacity .3s}
+  .prow.dimmed{opacity:.3}
+  .prow-lbl{font-size:12px;font-weight:600}
+  .prow-sub{font-size:10px;color:var(--muted);margin-top:1px}
+  .prow-val{font-family:'DM Serif Display',serif;font-size:18px;white-space:nowrap}
+  .p-mat{background:#EFF6FF}.p-mat .prow-val{color:var(--blue)}
+  .p-pose{background:#FFF7ED}.p-pose .prow-val{color:var(--orange)}
+  .p-acq{background:#F5F3FF}.p-acq .prow-val{color:var(--purple)}
+  .p-ht{background:var(--green-light);border:2px dashed var(--green)}.p-ht .prow-val{color:var(--green)}
+  .p-tva{background:#FEF3C7}.p-tva .prow-val{color:#D97706}
+  .p-ttc{background:var(--navy)}.p-ttc .prow-lbl{color:#fff}.p-ttc .prow-val{color:var(--sun)}.p-ttc .prow-sub{color:rgba(255,255,255,0.45)}
+  .p-arrow{text-align:center;color:var(--muted);font-size:13px;margin:-1px 0}
+
+  /* HT/TTC PILL */
+  .mode-pill{display:inline-flex;border-radius:20px;overflow:hidden;border:1.5px solid rgba(255,255,255,0.2)}
+  .mode-pill button{padding:6px 16px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+  .mode-pill button.active{background:var(--blue);color:#fff}
+
+  /* MARGE */
+  .marge-block{background:linear-gradient(135deg,var(--navy) 0%,#2D5A8E 100%);border-radius:14px;padding:22px;color:#fff;text-align:center;margin-bottom:18px}
+  .marge-block h3{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:6px}
+  .marge-big{font-family:'DM Serif Display',serif;font-size:52px;color:var(--sun);line-height:1}
+  .marge-sub{color:rgba(255,255,255,0.55);font-size:12px;margin-top:4px}
+  .marge-detail{display:flex;justify-content:center;flex-wrap:wrap;gap:24px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1)}
+  .mdi .val{font-family:'DM Serif Display',serif;font-size:20px}
+  .mdi .lbl{font-size:10px;color:rgba(255,255,255,0.45)}
+
+  /* BAR */
+  .bar-item{margin-bottom:13px}
+  .bar-item.dimmed{opacity:.3}
+  .bar-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
+  .bar-row span:last-child{font-weight:700}
+  .bar-track{height:9px;background:#F1F5F9;border-radius:5px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:5px;transition:width .6s ease}
+
+  .chart-wrap{position:relative;height:200px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .leg-item{display:flex;align-items:center;gap:5px;font-size:11px;transition:opacity .3s}
+  .leg-item.dimmed{opacity:.3}
+  .leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+  /* PRICE SLIDER */
+  .price-slider-zone{margin-top:16px;background:rgba(255,255,255,0.06);border-radius:12px;padding:14px 18px}
+  .price-slider-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+  .price-slider-label{color:rgba(255,255,255,0.5);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  .price-slider-value{font-family:'DM Serif Display',serif;font-size:22px;color:var(--sun)}
+  .price-slider-value small{font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);font-weight:400}
+  .price-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .price-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;white-space:nowrap}
+  .pb-ht{background:rgba(45,158,107,0.25);color:#6EE7B7}
+  .pb-marge{background:rgba(245,166,35,0.2);color:var(--sun)}
+  .pb-reset{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);cursor:pointer;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px}
+  .pb-reset:hover{background:rgba(255,255,255,0.2);color:#fff}
+  input[type=range].price-range{
+    width:100%;-webkit-appearance:none;appearance:none;
+    height:6px;border-radius:3px;outline:none;cursor:pointer;
+    background:linear-gradient(to right,var(--sun) 0%,var(--sun) 50%,rgba(255,255,255,0.15) 50%,rgba(255,255,255,0.15) 100%);
+  }
+  input[type=range].price-range::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 3px rgba(245,166,35,0.3);cursor:pointer}
+  input[type=range].price-range::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--sun);border:none;cursor:pointer}
+  .price-range-ticks{display:flex;justify-content:space-between;margin-top:5px}
+  .price-range-ticks span{font-size:10px;color:rgba(255,255,255,0.3)}
+
+
+  /* ROI */
+  .expo-btn{padding:6px 14px;border-radius:16px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+  .expo-btn:hover{border-color:var(--navy);color:var(--navy)}
+  .expo-btn.active{background:var(--navy);border-color:var(--navy);color:#fff}
+  .footer{background:var(--navy);color:rgba(255,255,255,0.35);text-align:center;padding:14px;font-size:10px;letter-spacing:.05em;margin-top:16px}
+  .footer strong{color:var(--sun)}
+
+  @media(max-width:900px){
+    .header{padding:16px 20px;flex-direction:column;align-items:flex-start}
+    .selector-zone{padding:10px 20px 16px}
+    .main{padding:12px}
+    .kpi-row{grid-template-columns:repeat(2,1fr)}
+    .g2,.g3{grid-template-columns:1fr}
+    .roi-kpi-grid{grid-template-columns:repeat(2,1fr)!important}
+  }
+  @media(max-width:500px){
+    .kpi-row{grid-template-columns:1fr 1fr}
+    .pack-row{gap:6px}
+    .pack-btn{padding:7px 12px;font-size:12px}
+  }
+
+  /* PDF BAR */
+  .pdf-bar{
+    background:var(--navy);padding:16px 32px;
+    display:flex;align-items:center;justify-content:center;
+    border-top:3px solid var(--sun);
+  }
+  .fab-pdf{
+    background:var(--sun);color:var(--navy);
+    border:none;border-radius:10px;padding:13px 36px;
+    font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;gap:10px;
+    box-shadow:0 4px 16px rgba(245,166,35,0.35);
+    transition:all .2s;letter-spacing:.02em;
+  }
+  .fab-pdf:hover{background:#fff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,166,35,0.4)}
+  .fab-pdf .fab-icon{font-size:18px}
+
+  /* PRINT STYLES */
+  @media print {
+    body{height:auto!important;overflow:visible!important;display:block!important}
+    .sticky-top{position:static!important}
+    .scroll-zone{overflow:visible!important;height:auto!important}
+    @page { margin: 14mm 12mm; size: A4; }
+    html,body { overflow:visible!important; background:#fff!important; }
+    .pdf-bar, .fab-pdf, .selector-zone, .pack-bar, .toggles-row, .price-slider-zone { display:none!important; }
+    .header { position:static!important; box-shadow:none!important; }
+    .header { -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:16px 20px!important; }
+    .main { padding:8px!important; }
+    .card, .marge-block { break-inside:avoid; }
+    .card-body.collapsed { display:block!important; }
+    .marge-detail.collapsed { display:flex!important; }
+    .card { border:1px solid #ddd!important; margin-bottom:10px; }
+    .g2, .g3, .kpi-row { display:grid!important; }
+    .g2 { grid-template-columns:1fr 1fr!important; }
+    .g3 { grid-template-columns:1fr 1fr 1fr!important; }
+    .kpi-row { grid-template-columns:repeat(5,1fr)!important; }
+    .roi-kpi-grid { grid-template-columns:repeat(4,1fr)!important; }
+    .marge-block { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .kpi::before { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .bar-fill, .roi-bar { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .p-mat,.p-pose,.p-acq,.p-ht,.p-tva,.p-ttc { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    canvas { max-width:100%!important; }
+    .chart-wrap { height:160px!important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sticky-top"><div class="header">
+  <div class="brand">
+    <div class="logo">☀️</div>
+    <div>
+      <div class="brand-name">Shemesh <span>Energy</span> — שמש אנרגיה</div>
+      <div class="brand-sub">Structure des coûts &amp; prix de vente — Installation photovoltaïque</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <strong id="hd-pack">Pack 20 kWc</strong><br>
+    Mai 2026 · Marché israélien · Région centre
+  </div>
+</div>
+
+<div class="selector-zone">
+  <div class="selector-label">Sélectionner un pack</div>
+  <div class="pack-row" id="pack-row"></div>
+
+  <div class="toggles-row">
+    <!-- Batterie -->
+    <div class="tgl-group">
+      <span class="tgl-label">Batterie :</span>
+      <button class="tgl-track on" id="tgl-bat" onclick="toggleBat()"><div class="tgl-knob"></div></button>
+      <span class="tgl-tag on" id="tag-bat">Avec batterie</span>
+    </div>
+
+    <div class="tgl-sep"></div>
+
+    <!-- Acquisition -->
+    <div class="tgl-group">
+      <span class="tgl-label">Acquisition client :</span>
+      <button class="tgl-track on-orange" id="tgl-acq" onclick="toggleAcq()"><div class="tgl-knob"></div></button>
+      <span class="tgl-tag on-orange" id="tag-acq">Incluse</span>
+    </div>
+
+    <div class="tgl-sep"></div>
+
+    <!-- HT / TTC -->
+    <div class="tgl-group">
+      <span class="tgl-label">Affichage prix :</span>
+      <div class="mode-pill">
+        <button id="btn-ht" onclick="setMode('ht')">HT</button>
+        <button id="btn-ttc" class="active" onclick="setMode('ttc')">TTC</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICE SLIDER -->
+  <div class="price-slider-zone">
+    <div class="price-slider-header">
+      <div>
+        <div class="price-slider-label">💳 Prix de vente TTC (ajustable)</div>
+        <div style="margin-top:4px;display:flex;align-items:baseline;gap:10px">
+          <div class="price-slider-value" id="slider-display">—<small> TTC</small></div>
+          <div class="price-badges">
+            <span class="price-badge pb-ht" id="slider-ht-badge">— HT</span>
+            <span class="price-badge pb-marge" id="slider-marge-badge">Marge —%</span>
+            <button class="pb-reset" onclick="resetPrice()">↺ Prix cible</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <input type="range" class="price-range" id="price-range"
+      min="0" max="100" step="1" value="50" oninput="onSlider(this.value)">
+    <div class="price-range-ticks">
+      <span id="tick-min">—</span>
+      <span id="tick-mid">Prix cible</span>
+      <span id="tick-max">—</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /sticky-top -->
+<div class="scroll-zone">
+<div class="main">
+  <div class="kpi-row">
+    <div class="kpi" style="--k-color:#3B82F6">
+      <div class="kpi-label">Matériel <span id="kpi-mode-lbl1">TTC</span></div>
+      <div class="kpi-val" id="k-mat">—</div>
+      <div class="kpi-badge" id="k-mat-p">—</div>
+    </div>
+    <div class="kpi" style="--k-color:#F59E0B">
+      <div class="kpi-label">Pose <span id="kpi-mode-lbl2">TTC</span></div>
+      <div class="kpi-val" id="k-pose">—</div>
+      <div class="kpi-badge" id="k-pose-p">—</div>
+    </div>
+    <div class="kpi" id="kpi-acq-card" style="--k-color:#8B5CF6">
+      <div class="kpi-label">Acquisition <span id="kpi-mode-lbl3">TTC</span></div>
+      <div class="kpi-val" id="k-acq">—</div>
+      <div class="kpi-badge" id="k-acq-p">—</div>
+    </div>
+    <div class="kpi" style="--k-color:#2D9E6B">
+      <div class="kpi-label">Prix vente <span id="kpi-mode-lbl4">TTC</span></div>
+      <div class="kpi-val" id="k-ttc">—</div>
+      <div class="kpi-badge" style="background:#E8F7F1;color:#2D9E6B">Prix client</div>
+    </div>
+    <div class="kpi" style="--k-color:#1E3A5F">
+      <div class="kpi-label">Marge nette HT</div>
+      <div class="kpi-val" id="k-marge">—</div>
+      <div class="kpi-badge" id="k-marge-p">—</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-head" onclick="toggleCard('body-mat','btn-mat')">
+        <div class="card-title">📦 Matériel <span id="tbl-mode1">TTC</span></div>
+        <div class="card-total"><span id="mat-hd">—</span><span class="collapse-btn" id="btn-mat">▲</span></div>
+      </div>
+      <div class="card-body" id="body-mat"><table class="dtable" id="mat-tbl"></table></div>
+    </div>
+    <div class="card">
+      <div class="card-head" onclick="toggleCard('body-pie1','btn-pie1')"><div class="card-title">🥧 Répartition des coûts</div><span class="collapse-btn" id="btn-pie1">▲</span></div>
+      <div class="card-body" id="body-pie1">
+        <div class="chart-wrap"><canvas id="pie1"></canvas></div>
+        <div class="legend" id="leg1"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <div class="card-head" onclick="toggleCard('body-pose','btn-pose')">
+        <div class="card-title">🔧 Pose <span id="tbl-mode2">TTC</span></div>
+        <div class="card-total"><span id="pose-hd">—</span><span class="collapse-btn" id="btn-pose">▲</span></div>
+      </div>
+      <div class="card-body" id="body-pose"><table class="dtable" id="pose-tbl"></table></div>
+    </div>
+    <div class="card">
+      <div class="card-head" onclick="toggleCard('body-pstack','btn-pstack')"><div class="card-title">💰 Construction du prix</div><span class="collapse-btn" id="btn-pstack">▲</span></div>
+      <div class="card-body" id="body-pstack"><div id="pstack"></div></div>
+    </div>
+    <div class="card" id="card-acq">
+      <div class="card-head" onclick="toggleCard('body-acq','btn-acq')">
+        <div class="card-title">🎯 Acquisition <span id="tbl-mode3">TTC</span></div>
+        <div class="card-total"><span id="acq-hd">—</span><span class="collapse-btn" id="btn-acq">▲</span></div>
+      </div>
+      <div class="card-body" id="body-acq">
+        <table class="dtable" id="acq-tbl"></table>
+        <div style="margin-top:14px;padding:10px 12px;background:#F5F3FF;border-radius:8px">
+          <div style="font-size:10px;color:#8B5CF6;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Ratio</div>
+          <div style="font-size:12px;color:#555">Coût acquisition = <strong id="acq-ratio">—</strong> du prix vente TTC</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="marge-block">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:0" onclick="toggleMarge()">
+      <div>
+        <h3 style="margin:0">Marge nette par installation</h3>
+        <div class="marge-big" id="mb-pct">—</div>
+        <div class="marge-sub" id="mb-sub">—</div>
+      </div>
+      <span id="btn-marge" style="width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,0.8);flex-shrink:0;background:rgba(255,255,255,0.1)">▲</span>
+    </div>
+    <div id="body-marge" class="marge-detail">
+      <div class="mdi"><div class="val" id="md-cout">—</div><div class="lbl">Coût de revient HT</div></div>
+      <div class="mdi"><div class="val" id="md-ht">—</div><div class="lbl">Prix vente HT</div></div>
+      <div class="mdi"><div class="val" id="md-ttc">—</div><div class="lbl">Prix vente TTC</div></div>
+      <div class="mdi"><div class="val" id="md-roi">—</div><div class="lbl">Multiplicateur</div></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-head" onclick="toggleCard('body-pie2','btn-pie2')"><div class="card-title">🥧 Décomposition prix de vente TTC</div><span class="collapse-btn" id="btn-pie2">▲</span></div>
+      <div class="card-body" id="body-pie2">
+        <div class="chart-wrap"><canvas id="pie2"></canvas></div>
+        <div class="legend" id="leg2"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head" onclick="toggleCard('bar-zone','btn-bar')"><div class="card-title">📊 Rentabilité par poste</div><span class="collapse-btn" id="btn-bar">▲</span></div>
+      <div class="card-body" id="bar-zone" style="padding-top:18px"></div>
+    </div>
+  <!-- ROI BLOCK -->
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-head" onclick="toggleCard('body-roi','btn-roi')">
+      <div class="card-title">📈 ROI — Retour sur investissement</div>
+      <div class="card-total"><span class="collapse-btn" id="btn-roi">▲</span></div>
+    </div>
+    <div class="card-body" id="body-roi">
+
+      <!-- TOGGLES ROI -->
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+
+        <!-- Exposition -->
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Exposition toiture</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="expo-btns">
+            <button class="expo-btn active" data-expo="sud" onclick="setExpo(this,'sud')">☀️ Sud</button>
+            <button class="expo-btn" data-expo="est" onclick="setExpo(this,'est')">🌅 Est</button>
+            <button class="expo-btn" data-expo="ouest" onclick="setExpo(this,'ouest')">🌇 Ouest</button>
+            <button class="expo-btn" data-expo="nord" onclick="setExpo(this,'nord')">🌑 Nord</button>
+          </div>
+        </div>
+
+        <div style="width:1px;height:40px;background:var(--border)"></div>
+
+        <!-- Prime urbaine -->
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Tarif IEC</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="tgl-track" id="tgl-prime" onclick="togglePrime()" style="background:rgba(0,0,0,0.08)"><div class="tgl-knob" style="background:#aaa"></div></button>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--navy)" id="prime-lbl">0,41 ₪/kWh</div>
+              <div style="font-size:10px;color:var(--muted)" id="prime-sub">Tarif standard</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="width:1px;height:40px;background:var(--border)"></div>
+
+        <!-- Durée ROI -->
+        <div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">Horizon projection</div>
+          <div style="display:flex;gap:6px">
+            <button class="expo-btn" id="yr-10" onclick="setYears(10)">10 ans</button>
+            <button class="expo-btn active" id="yr-25" onclick="setYears(25)">25 ans</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- KPI ROI ROW -->
+      <div class="roi-kpi-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+        <div style="background:#EFF6FF;border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#3B82F6;margin-bottom:6px">Production/an</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#1E3A5F" id="roi-prod">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px" id="roi-kwc">—</div>
+        </div>
+        <div style="background:#E8F7F1;border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#2D9E6B;margin-bottom:6px">Revenu annuel</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#1E3A5F" id="roi-rev">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px" id="roi-tarif">—</div>
+        </div>
+        <div style="background:#FFF3DC;border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#F5A623;margin-bottom:6px">Retour invest.</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#1E3A5F" id="roi-years">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Sur prix TTC client</div>
+        </div>
+        <div style="background:#F5F3FF;border-radius:10px;padding:14px 16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#8B5CF6;margin-bottom:6px" id="roi-horizon-lbl">Cumul 25 ans</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#1E3A5F" id="roi-cumul">—</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px" id="roi-gain">—</div>
+        </div>
+      </div>
+
+      <!-- BARRE PROGRESSION ROI -->
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px">
+          <span style="font-weight:600;color:var(--navy)">Progression du retour sur investissement</span>
+          <span style="color:var(--muted)" id="roi-pct-lbl">—</span>
+        </div>
+        <div style="height:12px;background:#F1F5F9;border-radius:6px;overflow:hidden">
+          <div id="roi-bar" style="height:100%;border-radius:6px;background:linear-gradient(90deg,#2D9E6B,#F5A623);transition:width .8s ease;width:0%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">
+          <span>Investissement : <strong id="roi-invest">—</strong></span>
+          <span id="roi-horizon-end">Horizon 25 ans</span>
+        </div>
+      </div>
+
+      <!-- TABLEAU PAR PÉRIODE -->
+      <table class="dtable" id="roi-table"></table>
+
+    </div>
+  </div>
+
+  </div>
+</div>
+
+<div class="footer"><strong>Shemesh Energy | שמש אנרגיה</strong> &nbsp;·&nbsp; Document interne confidentiel &nbsp;·&nbsp; Mai 2026 &nbsp;·&nbsp; Netanya, Israël</div>
+
+<div class="pdf-bar">
+  <button class="fab-pdf" onclick="window.print()">
+    <span class="fab-icon">🖨️</span> Générer PDF — configuration actuelle
+  </button>
+</div>
+
+<script>
+const TVA = 0.17;
+const PRIX_WC = 0.45;
+const POSE_BAT = 1000;
+const POSE_SANS = 750;
+
+const BAT_PRIX = {5:4200,10:8400,15:12600,20:12600,25:16800,30:16800};
+const BAT_DESC = {5:'5 kWh (1×5kWh)',10:'10 kWh (2×5kWh)',15:'15 kWh (3×5kWh)',20:'15 kWh (3×5kWh)',25:'20 kWh (4×5kWh)',30:'20 kWh (4×5kWh)'};
+const ONDULEUR = {5:3500,10:6500,15:8000,20:9240,25:11000,30:13500};
+const FIXATION = {5:900,10:1800,15:2600,20:3200,25:4000,30:4800};
+const CABLAGE  = {5:700,10:1100,15:1500,20:1800,25:2200,30:2600};
+const CONNECT  = {5:280,10:400,15:550,20:650,25:800,30:950};
+const IEC      = {5:900,10:1300,15:1600,20:1800,25:2100,30:2400};
+const MES      = {5:400,10:600,15:750,20:900,25:1100,30:1200};
+const TRANSPORT= {5:300,10:450,15:600,20:700,25:850,30:1000};
+const DIGITAL  = {5:600,10:1200,15:1800,20:2500,25:3200,30:4000};
+const VISITE   = {5:250,10:350,15:500,20:600,25:700,30:900};
+const PRIX_TTC = {5:18900,10:35900,15:54900,20:79900,25:99900,30:119900};
+const PACKS    = [5,10,15,20,25,30];
+const COLORS   = {mat:'#3B82F6',pose:'#F59E0B',acq:'#8B5CF6',marge:'#2D9E6B',tva:'#F97316'};
+
+let kwc=20, withBat=true, showAcq=true, mode='ttc';
+let customTTC=null; // null = prix cible par défaut
+let charts={};
+
+function getBaseTTC(){return PRIX_TTC[kwc];}
+function getEffTTC(){return customTTC!==null?customTTC:getBaseTTC();}
+
+
+// ─── ROI ──────────────────────────────────────────────────────────────────────
+const EXPO = {
+  sud:   { kwcPerKwc: 1750, label: 'Sud (1 750 kWh/kWc/an)' },
+  est:   { kwcPerKwc: 1550, label: 'Est (1 550 kWh/kWc/an)' },
+  ouest: { kwcPerKwc: 1550, label: 'Ouest (1 550 kWh/kWc/an)' },
+  nord:  { kwcPerKwc: 1150, label: 'Nord (1 150 kWh/kWc/an)' },
+};
+let currentExpo = 'sud';
+let withPrime = false;
+let roiYears = 25;
+
+function setExpo(el, expo) {
+  currentExpo = expo;
+  document.querySelectorAll('.expo-btn[data-expo]').forEach(b => b.classList.toggle('active', b.dataset.expo === expo));
+  renderROI();
+}
+
+function togglePrime() {
+  withPrime = !withPrime;
+  const t = document.getElementById('tgl-prime');
+  t.classList.toggle('on-orange', withPrime);
+  const knob = t.querySelector('.tgl-knob');
+  if(knob) knob.style.background = '#fff';
+  document.getElementById('prime-lbl').textContent = withPrime ? '0,47 ₪/kWh' : '0,41 ₪/kWh';
+  document.getElementById('prime-sub').textContent = withPrime ? 'Avec prime urbaine' : 'Tarif standard';
+  renderROI();
+}
+
+function setYears(y) {
+  roiYears = y;
+  document.getElementById('yr-10').classList.toggle('active', y===10);
+  document.getElementById('yr-25').classList.toggle('active', y===25);
+  renderROI();
+}
+
+function renderROI() {
+  const k = kwc;
+  const expo = EXPO[currentExpo];
+  const tarif = withPrime ? 0.47 : 0.41;
+  const prodAn = Math.round(k * expo.kwcPerKwc);
+  const revAn = Math.round(prodAn * tarif);
+  const invest = getEffTTC();
+  const roiAns = (invest / revAn).toFixed(1);
+  const cumul = Math.round(revAn * roiYears);
+  const gain = cumul - invest;
+  const pct = Math.min(Math.round((roiYears / parseFloat(roiAns)) * 100), 100);
+
+  document.getElementById('roi-prod').textContent = prodAn.toLocaleString('fr-FR') + ' kWh';
+  document.getElementById('roi-kwc').textContent = expo.label;
+  document.getElementById('roi-rev').textContent = fmt(revAn) + '/an';
+  document.getElementById('roi-tarif').textContent = tarif + ' ₪/kWh × ' + prodAn.toLocaleString('fr-FR') + ' kWh';
+  document.getElementById('roi-years').textContent = roiAns + ' ans';
+  document.getElementById('roi-horizon-lbl').textContent = 'Cumul ' + roiYears + ' ans';
+  document.getElementById('roi-cumul').textContent = fmt(cumul);
+  document.getElementById('roi-gain').textContent = (gain >= 0 ? '+ ' : '') + fmt(gain) + ' de bénéfice net';
+  document.getElementById('roi-gain').style.color = gain >= 0 ? '#2D9E6B' : '#E05252';
+  document.getElementById('roi-pct-lbl').textContent = pct + '% remboursé sur ' + roiYears + ' ans';
+  document.getElementById('roi-bar').style.width = pct + '%';
+  document.getElementById('roi-bar').style.background = pct >= 100 ? '#2D9E6B' : 'linear-gradient(90deg,#2D9E6B,#F5A623)';
+  document.getElementById('roi-invest').textContent = fmt(invest);
+  document.getElementById('roi-horizon-end').textContent = 'Horizon ' + roiYears + ' ans';
+
+  // Tableau par période
+  const periods = [];
+  for(let i=1; i<=7; i++) periods.push(i);
+  for(let i=10; i<=roiYears; i+=5) periods.push(i);
+  if(!periods.includes(roiYears)) periods.push(roiYears);
+
+  const rows = periods.map(p => {
+    const c = Math.round(revAn * p);
+    const g = c - invest;
+    const ok = c >= invest;
+    return `<tr>
+      <td><strong>${p} an${p>1?'s':''}</strong></td>
+      <td>${fmt(c)}</td>
+      <td style="color:${ok?'#2D9E6B':'#E05252'};font-weight:700">${ok?'+ ':''} ${fmt(g)}</td>
+      <td><div style="height:6px;background:#F1F5F9;border-radius:3px;overflow:hidden;width:100px"><div style="height:100%;width:${Math.min(Math.round(c/invest*100),100)}%;background:${ok?'#2D9E6B':'#F5A623'};border-radius:3px"></div></div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('roi-table').innerHTML =
+    `<tr style="border-bottom:2px solid var(--border)">
+      <td style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Période</td>
+      <td style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Cumul revenus</td>
+      <td style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Gain net</td>
+      <td style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Avancement</td>
+    </tr>` + rows;
+}
+
+function initSlider(){
+  const base=getBaseTTC();
+  const min=5000;
+  const max=200000;
+  const range=document.getElementById('price-range');
+  range.min=min; range.max=max; range.step=5000;
+
+  const cur=customTTC!==null?customTTC:base;
+  range.value=cur;
+  // ticks
+  document.getElementById('tick-min').textContent=fmt(min);
+  document.getElementById('tick-max').textContent=fmt(max);
+  document.getElementById('tick-mid').textContent='Cible : '+fmt(base);
+  updateSliderDisplay(cur);
+  // gradient
+  updateRangeGradient(range);
+}
+
+function updateRangeGradient(range){
+  const pct=(range.value-range.min)/(range.max-range.min)*100;
+  range.style.background=`linear-gradient(to right,#F5A623 0%,#F5A623 ${pct}%,rgba(255,255,255,0.15) ${pct}%,rgba(255,255,255,0.15) 100%)`;
+}
+
+function updateSliderDisplay(ttcVal){
+  const htVal=Math.round(ttcVal/(1+TVA));
+  document.getElementById('slider-display').innerHTML=fmt(ttcVal)+'<small> TTC</small>';
+  document.getElementById('slider-ht-badge').textContent=fmt(htVal)+' HT';
+}
+
+function onSlider(val){
+  customTTC=parseInt(val);
+  updateSliderDisplay(customTTC);
+  updateRangeGradient(document.getElementById('price-range'));
+  render();
+}
+
+function resetPrice(){
+  customTTC=null;
+  initSlider();
+  render();
+}
+
+// Init pack buttons
+const packRow = document.getElementById('pack-row');
+PACKS.forEach(k => {
+  const b = document.createElement('button');
+  b.className='pack-btn'+(k===kwc?' active':'');
+  b.textContent=k+' kWc';
+  b.onclick=()=>setPack(k);
+  packRow.appendChild(b);
+});
+
+function setPack(k){kwc=k;customTTC=null;document.querySelectorAll('.pack-btn').forEach((b,i)=>b.classList.toggle('active',PACKS[i]===k));initSlider();render()}
+
+function toggleBat(){
+  withBat=!withBat;
+  const t=document.getElementById('tgl-bat'),tag=document.getElementById('tag-bat');
+  t.classList.toggle('on',withBat);
+  tag.textContent=withBat?'Avec batterie':'Sans batterie';
+  tag.classList.toggle('on',withBat);
+  render();
+}
+
+function toggleAcq(){
+  showAcq=!showAcq;
+  const t=document.getElementById('tgl-acq'),tag=document.getElementById('tag-acq');
+  t.classList.toggle('on-orange',showAcq);
+  tag.textContent=showAcq?'Incluse':'Masquée';
+  tag.classList.toggle('on-orange',showAcq);
+  // dim acquisition card + kpi
+  const cardAcq = document.getElementById('card-acq');
+  const kpiAcq = document.getElementById('kpi-acq-card');
+  cardAcq.style.display = showAcq ? '' : 'none';
+  kpiAcq.style.display = showAcq ? '' : 'none';
+  render();
+}
+
+function setMode(m){
+  mode=m;
+  document.getElementById('btn-ht').classList.toggle('active',m==='ht');
+  document.getElementById('btn-ttc').classList.toggle('active',m==='ttc');
+  render();
+}
+
+// fmt: applies HT/TTC mode. All costs are HT, prix vente can be HT or TTC.
+function fmt(n){return Math.round(n).toLocaleString('fr-FR')+' ₪'}
+function pct(a,b){return Math.round(a/b*100)+'%'}
+// Display a cost value in current mode (costs are HT — multiply by 1+TVA for TTC display)
+function fmtCost(n){return fmt(mode==='ttc'? n*(1+TVA) : n)}
+// Display price (already has both HT and TTC computed)
+function fmtPrice(ht,ttc){return fmt(mode==='ttc'?ttc:ht)}
+function modeLabel(){return mode==='ttc'?'TTC':'HT'}
+
+function makeTable(rows,totalHT){
+  return rows.map(r=>`<tr><td>${r.l}</td><td>${r.q}</td><td>${fmtCost(r.v)}</td></tr>`).join('')
+    +`<tr class="sub"><td colspan="2">SOUS-TOTAL ${modeLabel()}</td><td>${fmtCost(totalHT)}</td></tr>`;
+}
+
+function makePie(id,legId,labels,values,colors,dimIdx){
+  if(charts[id])charts[id].destroy();
+  const ctx=document.getElementById(id).getContext('2d');
+  charts[id]=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:2,borderColor:'#fff',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.raw)} (${Math.round(c.raw/c.dataset.data.reduce((a,b)=>a+b,0)*100)}%)`}}}}
+  });
+  const total=values.reduce((a,b)=>a+b,0);
+  document.getElementById(legId).innerHTML=labels.map((l,i)=>
+    `<div class="leg-item${dimIdx&&dimIdx.includes(i)?' dimmed':''}">
+      <div class="leg-dot" style="background:${colors[i]}"></div>
+      <span>${l} — <strong>${pct(values[i],total)}</strong></span>
+    </div>`
+  ).join('');
+}
+
+function toggleMarge(){
+  const body=document.getElementById('body-marge');
+  const btn=document.getElementById('btn-marge');
+  if(!body)return;
+  const collapsed=body.classList.toggle('collapsed');
+  if(btn)btn.textContent=collapsed?'▼':'▲';
+}
+
+function toggleCard(bodyId, btnId){
+  const body = document.getElementById(bodyId);
+  const btn  = document.getElementById(btnId);
+  if(!body) return;
+  const collapsed = body.classList.toggle('collapsed');
+  if(btn) btn.textContent = collapsed ? '▼' : '▲';
+}
+
+function render(){
+  const k=kwc, wb=withBat, sa=showAcq;
+
+  // MATÉRIEL (HT)
+  const panneaux=Math.round(k*1000*PRIX_WC);
+  const nP=Math.ceil(k*1000/550);
+  const matRows=[
+    {l:`${nP}× Panneaux Jinko 550W (0,45₪/Wc)`,q:`${nP} u.`,v:panneaux},
+    {l:`Onduleur hybride ${k}kW (Huawei/SolarEdge)`,q:'1 u.',v:ONDULEUR[k]},
+    ...(wb?[{l:`Batterie LiFePO4 ${BAT_DESC[k]}`,q:'1 u.',v:BAT_PRIX[k]}]:[]),
+    {l:'Kit fixation K2 Systems',q:'1 kit',v:FIXATION[k]},
+    {l:'Câblage DC/AC + protections',q:'forfait',v:CABLAGE[k]},
+    {l:'Connecteurs, disjoncteurs, terre',q:'forfait',v:CONNECT[k]},
+  ];
+  const matHT=matRows.reduce((a,r)=>a+r.v,0);
+
+  // POSE (HT)
+  const moMain=k*(wb?POSE_BAT:POSE_SANS);
+  const poseRows=[
+    {l:`Main-d'oeuvre (${k}kWc × ${wb?1000:750}₪/kWc)`,q:`${k} kWc`,v:moMain},
+    {l:'Démarches IEC + permis mairie',q:'forfait',v:IEC[k]},
+    {l:'Mise en service & tests',q:'forfait',v:MES[k]},
+    {l:'Transport & logistique',q:'forfait',v:TRANSPORT[k]},
+  ];
+  const poseHT=poseRows.reduce((a,r)=>a+r.v,0);
+
+  // ACQUISITION (HT)
+  const ttc=getEffTTC();
+  const baseTTC=getBaseTTC();
+  const commission=Math.round(ttc*0.03);
+  const acqRows=[
+    {l:'Publicité digitale (Meta/Google)',q:'par lead',v:DIGITAL[k]},
+    {l:'Commission commercial (3% CA TTC)',q:'3%',v:commission},
+    {l:'Dossier, visite technique',q:'forfait',v:VISITE[k]},
+  ];
+  const acqHT=acqRows.reduce((a,r)=>a+r.v,0);
+  const acqEffHT=sa?acqHT:0;
+
+  // CALCULS
+  const coutRevHT=matHT+poseHT+acqEffHT;
+  const prixHT=Math.round(ttc/(1+TVA));
+  const tvaAmt=ttc-prixHT;
+  const margeHT=prixHT-coutRevHT;
+  const margePct=Math.round(margeHT/prixHT*100);
+
+  // Mode labels
+  ['kpi-mode-lbl1','kpi-mode-lbl2','kpi-mode-lbl3','kpi-mode-lbl4','tbl-mode1','tbl-mode2','tbl-mode3']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=modeLabel()});
+
+  // Update slider marge badge
+  const sliderMargePct=Math.round(margeHT/prixHT*100);
+  const margeBadge=document.getElementById('slider-marge-badge');
+  if(margeBadge){
+    margeBadge.textContent='Marge '+sliderMargePct+'%';
+    margeBadge.style.background=sliderMargePct>25?'rgba(45,158,107,0.25)':sliderMargePct>10?'rgba(245,166,35,0.2)':'rgba(224,82,82,0.25)';
+    margeBadge.style.color=sliderMargePct>25?'#6EE7B7':sliderMargePct>10?'#F5A623':'#FCA5A5';
+  }
+
+  document.getElementById('hd-pack').textContent=`Pack ${k} kWc — ${wb?'Avec':'Sans'} batterie${!sa?' (sans acq.)':''}${customTTC?` · Prix perso`:''}`;
+
+  // KPIs
+  document.getElementById('k-mat').textContent=fmtCost(matHT);
+  document.getElementById('k-mat-p').textContent=pct(matHT,coutRevHT||1)+' du coût';
+  document.getElementById('k-pose').textContent=fmtCost(poseHT);
+  document.getElementById('k-pose-p').textContent=pct(poseHT,coutRevHT||1)+' du coût';
+  document.getElementById('k-acq').textContent=fmtCost(acqHT);
+  document.getElementById('k-acq-p').textContent=pct(acqHT,coutRevHT||1)+' du coût';
+  document.getElementById('k-ttc').textContent=fmtPrice(prixHT,ttc);
+  document.getElementById('k-marge').textContent=fmt(margeHT);
+  document.getElementById('k-marge-p').textContent=margePct+'% HT';
+
+  // Card headers
+  document.getElementById('mat-hd').textContent=fmtCost(matHT);
+  document.getElementById('pose-hd').textContent=fmtCost(poseHT);
+  document.getElementById('acq-hd').textContent=fmtCost(acqHT);
+
+  // Tables
+  document.getElementById('mat-tbl').innerHTML=makeTable(matRows,matHT);
+  document.getElementById('pose-tbl').innerHTML=makeTable(poseRows,poseHT);
+  document.getElementById('acq-tbl').innerHTML=makeTable(acqRows,acqHT);
+  document.getElementById('acq-ratio').textContent=pct(acqHT,ttc);
+
+  // Price stack
+  const acqRow=sa
+    ?`<div class="prow p-acq"><div><div class="prow-lbl">🎯 Acquisition HT</div></div><div class="prow-val">${fmt(acqHT)}</div></div><div class="p-arrow">+</div>`
+    :`<div class="prow p-acq dimmed"><div><div class="prow-lbl">🎯 Acquisition (masquée)</div></div><div class="prow-val">—</div></div><div class="p-arrow">+</div>`;
+
+  document.getElementById('pstack').innerHTML=`
+    <div class="prow p-mat"><div><div class="prow-lbl">📦 Matériel HT</div></div><div class="prow-val">${fmt(matHT)}</div></div>
+    <div class="p-arrow">+</div>
+    <div class="prow p-pose"><div><div class="prow-lbl">🔧 Pose HT</div></div><div class="prow-val">${fmt(poseHT)}</div></div>
+    <div class="p-arrow">+</div>
+    ${acqRow}
+    <div class="p-arrow">= Coût revient HT : ${fmt(coutRevHT)}</div>
+    <div class="prow p-ht"><div><div class="prow-lbl">✅ Prix vente HT</div><div class="prow-sub">Marge = ${fmt(margeHT)} (${margePct}%)</div></div><div class="prow-val">${fmt(prixHT)}</div></div>
+    <div class="p-arrow">+</div>
+    <div class="prow p-tva"><div><div class="prow-lbl">🧾 TVA 17%</div></div><div class="prow-val">${fmt(tvaAmt)}</div></div>
+    <div class="p-arrow">↓</div>
+    <div class="prow p-ttc"><div><div class="prow-lbl">💳 PRIX DE VENTE TTC</div><div class="prow-sub">Prix affiché au client</div></div><div class="prow-val">${fmt(ttc)}</div></div>
+  `;
+
+  // Marge block — toujours en HT (référence comptable)
+  document.getElementById('mb-pct').textContent=margePct+'%';
+  document.getElementById('mb-sub').textContent=`Soit ${fmt(margeHT)} de bénéfice HT — Pack ${k} kWc`;
+  document.getElementById('md-cout').textContent=fmt(coutRevHT);
+  document.getElementById('md-ht').textContent=fmt(prixHT);
+  document.getElementById('md-ttc').textContent=fmt(ttc);
+  document.getElementById('md-roi').textContent='x'+(prixHT/coutRevHT).toFixed(2);
+
+  // PIE 1 — coûts
+  const pie1Labels=sa?['Matériel','Pose','Acquisition']:['Matériel','Pose'];
+  const pie1Values=sa?[matHT,poseHT,acqHT]:[matHT,poseHT];
+  const pie1Colors=sa?[COLORS.mat,COLORS.pose,COLORS.acq]:[COLORS.mat,COLORS.pose];
+  makePie('pie1','leg1',pie1Labels,pie1Values,pie1Colors);
+
+  // PIE 2 — décomposition TTC
+  const pie2Labels=sa
+    ?['Matériel','Pose','Acquisition','Marge HT','TVA 17%']
+    :['Matériel','Pose','Marge HT','TVA 17%'];
+  const pie2Values=sa
+    ?[matHT,poseHT,acqHT,margeHT,tvaAmt]
+    :[matHT,poseHT,margeHT,tvaAmt];
+  const pie2Colors=sa
+    ?[COLORS.mat,COLORS.pose,COLORS.acq,COLORS.marge,COLORS.tva]
+    :[COLORS.mat,COLORS.pose,COLORS.marge,COLORS.tva];
+  makePie('pie2','leg2',pie2Labels,pie2Values,pie2Colors);
+
+  // BAR — base TTC
+  const barSegs=[
+    {l:'Matériel',v:matHT,c:COLORS.mat,dim:false},
+    {l:'Pose',v:poseHT,c:COLORS.pose,dim:false},
+    {l:'Acquisition',v:acqHT,c:COLORS.acq,dim:!sa},
+    {l:'Marge nette HT',v:margeHT,c:COLORS.marge,dim:false},
+    {l:'TVA 17%',v:tvaAmt,c:COLORS.tva,dim:false},
+  ];
+  const barBase=sa?ttc:ttc; // toujours affiché sur base TTC
+  document.getElementById('bar-zone').innerHTML=barSegs.map(s=>{
+    const w=Math.round(s.v/barBase*100);
+    return `<div class="bar-item${s.dim?' dimmed':''}">
+      <div class="bar-row"><span>${s.l}</span><span style="color:${s.c}">${fmt(s.v)} · ${w}%</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${s.c}"></div></div>
+    </div>`;
+  }).join('')+`<div style="margin-top:14px;padding-top:12px;border-top:2px dashed #E2E8F0;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12px;font-weight:700;color:var(--navy)">TOTAL TTC</span>
+    <span style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--navy)">${fmt(ttc)}</span>
+  </div>`;
+  renderROI();
+}
+
+// Set header height CSS var for sticky selector offset
+initSlider();
+render();
+renderROI();
+</script>
+</div><!-- /scroll-zone -->
+</body>
+</html>
