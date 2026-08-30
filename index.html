@@ -383,7 +383,7 @@
 
 <!-- ═══════════════════ MODALE ANALYSEUR IEC ═══════════════════ -->
 <div class="modal-overlay" id="iec-modal">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:760px">
     <div class="modal-header">
       <div>
         <div class="modal-title">⚡ Analyser une facture <span>IEC</span></div>
@@ -393,8 +393,13 @@
     </div>
     <div class="modal-body">
 
+      <div class="modal-tabs">
+        <button class="mtab active" id="mtab-analyse" onclick="switchIecTab('analyse')">📄 Analyser</button>
+        <button class="mtab" id="mtab-historique" onclick="switchIecTab('historique')">🕘 Historique <span id="hist-count" style="color:var(--muted);font-weight:400"></span></button>
+      </div>
+
       <!-- PANEL ANALYSE UNIQUEMENT -->
-      <div id="tab-analyse">
+      <div id="tab-analyse" class="mtab-panel active">
 
       <!-- UPLOAD -->
       <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
@@ -482,6 +487,16 @@
       </div>
 
       </div><!-- /tab-analyse -->
+
+      <!-- PANEL HISTORIQUE -->
+      <div id="tab-historique" class="mtab-panel">
+        <div id="historique-empty" style="text-align:center;padding:40px 20px;color:var(--muted)">
+          <div style="font-size:36px;margin-bottom:12px">🗂️</div>
+          <div style="font-size:14px">Aucune facture analysée pour l'instant</div>
+          <div style="font-size:12px;margin-top:4px">Les factures analysées apparaîtront ici automatiquement</div>
+        </div>
+        <div id="historique-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div><!-- /tab-historique -->
 
     </div>
   </div>
@@ -1147,9 +1162,185 @@ document.getElementById('settings-modal').addEventListener('click',function(e){
 
 function switchTab(tabId){} // legacy — plus utilisé
 
+function switchIecTab(tab){
+  document.getElementById('mtab-analyse').classList.toggle('active', tab==='analyse');
+  document.getElementById('mtab-historique').classList.toggle('active', tab==='historique');
+  document.getElementById('tab-analyse').classList.toggle('active', tab==='analyse');
+  document.getElementById('tab-historique').classList.toggle('active', tab==='historique');
+  if(tab==='historique') renderHistoryList();
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTORIQUE DES FACTURES ANALYSÉES
+// ═══════════════════════════════════════════════════════
+const HISTORY_KEY='shemesh_iec_history';
+
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+
+function saveHistoryArr(arr){
+  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }catch(e){}
+  updateHistBadge();
+}
+
+function updateHistBadge(){
+  const n=loadHistory().length;
+  const b=document.getElementById('hist-count');
+  if(b) b.textContent=n>0?'('+n+')':'';
+}
+
+function addToHistory(result, filename){
+  const arr=loadHistory();
+  arr.unshift({
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+    date:new Date().toISOString(),
+    filename:filename||'',
+    result:result
+  });
+  if(arr.length>200) arr.length=200;
+  saveHistoryArr(arr);
+}
+
+function formatHistDate(iso){
+  try{
+    const d=new Date(iso);
+    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return iso; }
+}
+
+function renderHistoryList(){
+  const arr=loadHistory();
+  const listEl=document.getElementById('historique-list');
+  const emptyEl=document.getElementById('historique-empty');
+  updateHistBadge();
+
+  if(arr.length===0){
+    emptyEl.style.display='block';
+    listEl.style.display='none';
+    listEl.innerHTML='';
+    return;
+  }
+  emptyEl.style.display='none';
+  listEl.style.display='flex';
+
+  listEl.innerHTML=arr.map(item=>{
+    const r=item.result||{};
+    const score=r.score_lead||0;
+    const scoreColor=score>=75?'var(--green)':score>=50?'var(--sun)':'#E05252';
+    const waPreview=(r.whatsapp_hebrew||'').length>90?r.whatsapp_hebrew.substring(0,90)+'…':(r.whatsapp_hebrew||'—');
+    return `
+    <div style="border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+
+      <!-- EN-TÊTE CLIENT -->
+      <div style="background:linear-gradient(135deg,var(--navy),#2D5A8E);padding:14px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div style="min-width:0">
+          <div style="font-family:'DM Serif Display',serif;color:#fff;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(r.client||'Client sans nom')}</div>
+          <div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:2px">${escHtml(r.adresse||'—')}</div>
+          <div style="color:rgba(255,255,255,0.45);font-size:10px;margin-top:4px">📅 ${formatHistDate(item.date)}${item.filename?' · '+escHtml(item.filename):''}</div>
+        </div>
+        <div style="text-align:center;flex-shrink:0;background:rgba(255,255,255,0.12);border-radius:10px;padding:6px 12px">
+          <div style="font-size:18px;font-weight:700;color:${score>=75?'#7EE8B8':score>=50?'var(--sun)':'#FF9B9B'}">${score}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:.05em">Lead Score</div>
+        </div>
+      </div>
+
+      <!-- INFOS CONSOMMATION / FACTURE -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--border)">
+        <div style="background:#fff;padding:12px 14px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Consommation</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${(r.consomation_annuelle_kwh||0).toLocaleString('fr-FR')} kWh/an</div>
+          <div style="font-size:11px;color:var(--muted)">≈ ${(r.consomation_mensuelle_kwh||0).toLocaleString('fr-FR')} kWh/mois</div>
+        </div>
+        <div style="background:#fff;padding:12px 14px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Montant facture</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${escHtml(r.montant_facture||'—')}</div>
+          <div style="font-size:11px;color:var(--muted)">Période : ${escHtml(r.periode_jours||'?')} jours</div>
+        </div>
+        <div style="background:#fff;padding:12px 14px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Connexion</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${escHtml(r.connexion_kva||'—')}</div>
+          <div style="font-size:11px;color:var(--muted)">${escHtml(r.amperage||'')}${r.phase?' · '+escHtml(r.phase):''}</div>
+        </div>
+        <div style="background:#fff;padding:12px 14px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Tarif IEC</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${escHtml(r.tarif||'—')}</div>
+          <div style="font-size:11px;color:var(--muted)">Type de contrat</div>
+        </div>
+      </div>
+
+      <!-- PACK RECOMMANDÉ -->
+      <div style="background:var(--green-light);padding:14px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.04em;font-weight:700">🎯 Pack recommandé</div>
+            <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">${escHtml(r.pack_nom||(r.pack_recommande_kwc?r.pack_recommande_kwc+' kWc':'—'))}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;max-width:280px">${escHtml(r.justification||'')}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:15px;font-weight:700;color:var(--green)">${(r.pack_prix_ttc||0).toLocaleString('fr-FR')} ₪</div>
+            <div style="font-size:10px;color:var(--muted)">Prix TTC</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:18px;margin-top:10px;flex-wrap:wrap">
+          <div><div style="font-size:12px;font-weight:700;color:var(--text)">${(r.production_annuelle_kwh||0).toLocaleString('fr-FR')} kWh</div><div style="font-size:10px;color:var(--muted)">Production/an</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--green)">${(r.economie_annuelle_nis||0).toLocaleString('fr-FR')} ₪</div><div style="font-size:10px;color:var(--muted)">Économie/an</div></div>
+          <div><div style="font-size:12px;font-weight:700;color:var(--text)">${r.roi_ans||'—'} ans</div><div style="font-size:10px;color:var(--muted)">Retour invest.</div></div>
+        </div>
+      </div>
+
+      <!-- MESSAGE WHATSAPP -->
+      <div style="padding:12px 18px;border-top:1px solid var(--border)">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">💬 Message WhatsApp</div>
+        <div dir="rtl" style="font-size:12px;color:var(--text);line-height:1.5">${escHtml(waPreview)}</div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div style="display:flex;justify-content:flex-end;gap:16px;padding:10px 18px;background:#FAFBFC;border-top:1px solid var(--border)">
+        <button onclick="copyHistWA('${item.id}')" style="background:none;border:none;color:var(--blue);font-size:12px;cursor:pointer;font-weight:600">📋 Copier WhatsApp</button>
+        <button onclick="openHistoryItem('${item.id}')" style="background:none;border:none;color:var(--navy);font-size:12px;cursor:pointer;font-weight:600">👁️ Voir en détail</button>
+        <button onclick="deleteHistoryItem('${item.id}')" style="background:none;border:none;color:#E05252;font-size:12px;cursor:pointer;font-weight:600">🗑️ Supprimer</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function copyHistWA(id){
+  const arr=loadHistory();
+  const item=arr.find(i=>i.id===id);
+  if(!item||!item.result||!item.result.whatsapp_hebrew) return;
+  navigator.clipboard.writeText(item.result.whatsapp_hebrew).then(()=>{
+    alert('✅ Message WhatsApp copié !');
+  }).catch(()=>{
+    alert('⚠️ Impossible de copier automatiquement — copie le texte manuellement.');
+  });
+}
+
+function escHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function openHistoryItem(id){
+  const arr=loadHistory();
+  const item=arr.find(i=>i.id===id);
+  if(!item) return;
+  lastIECResult=item.result;
+  afficherResultat(item.result);
+  switchIecTab('analyse');
+}
+
+function deleteHistoryItem(id){
+  if(!confirm('Supprimer cette analyse de l\'historique ?')) return;
+  const arr=loadHistory().filter(i=>i.id!==id);
+  saveHistoryArr(arr);
+  renderHistoryList();
+}
+
 function openModal(){
   document.getElementById('iec-modal').classList.add('open');
   document.body.style.overflow='hidden';
+  updateHistBadge();
 }
 
 function closeModal(){
@@ -1334,6 +1525,7 @@ async function analyserFacture(){
     }
 
     lastIECResult=result;
+    addToHistory(result, uploadedFile?uploadedFile.name:'');
     afficherResultat(result);
 
   } catch(err) {
