@@ -674,6 +674,9 @@
     <button class="btn-facture" onclick="openModal()">
       <span class="bficon">⚡</span> Importer facture IEC
     </button>
+    <button class="btn-facture" onclick="openModal('historique')" style="background:rgba(255,255,255,0.12);color:#fff;box-shadow:none;border:1.5px solid rgba(255,255,255,0.2)">
+      <span class="bficon">🕘</span> Historique <span id="hd-hist-count"></span>
+    </button>
     <button class="btn-facture" onclick="openSettings()" style="background:rgba(255,255,255,0.12);color:#fff;box-shadow:none;border:1.5px solid rgba(255,255,255,0.2)">
       ⚙️ Paramètres
     </button>
@@ -1189,6 +1192,8 @@ function updateHistBadge(){
   const n=loadHistory().length;
   const b=document.getElementById('hist-count');
   if(b) b.textContent=n>0?'('+n+')':'';
+  const hb=document.getElementById('hd-hist-count');
+  if(hb) hb.textContent=n>0?'('+n+')':'';
 }
 
 function addToHistory(result, filename){
@@ -1337,10 +1342,11 @@ function deleteHistoryItem(id){
   renderHistoryList();
 }
 
-function openModal(){
+function openModal(startTab){
   document.getElementById('iec-modal').classList.add('open');
   document.body.style.overflow='hidden';
   updateHistBadge();
+  switchIecTab(startTab==='historique'?'historique':'analyse');
 }
 
 function closeModal(){
@@ -2000,6 +2006,7 @@ function render(){
 initSlider();
 render();
 updateSettingsBadge();
+updateHistBadge();
 </script>
 </body>
 </html>
