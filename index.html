@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shemesh Energy — Structure des Coûts</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="iec-analyzer.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
   :root {
@@ -27,6 +28,12 @@
   .brand-sub{color:rgba(255,255,255,0.45);font-size:11px;text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
   .header-meta{text-align:right;color:rgba(255,255,255,0.55);font-size:11px;line-height:1.9;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
   .header-meta strong{color:var(--sun);font-size:13px}
+
+  /* NAVIGATION ENTRE OUTILS */
+  .app-nav{background:#16283F;display:flex;gap:0;padding:0 32px;border-bottom:1px solid rgba(255,255,255,0.08)}
+  .app-nav-link{color:rgba(255,255,255,0.5);text-decoration:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:12px 18px;border-bottom:2px solid transparent;transition:all .2s}
+  .app-nav-link:hover{color:#fff}
+  .app-nav-link.active{color:var(--sun);border-bottom-color:var(--sun)}
 
   /* BOUTON FACTURE */
   .btn-facture{
@@ -683,6 +690,11 @@
   </div>
 </div>
 
+<div class="app-nav">
+  <a href="index.html" class="app-nav-link active">💰 Coûts &amp; Marges</a>
+  <a href="prospection.html" class="app-nav-link">🏘️ Prospection Netanya</a>
+</div>
+
 <div class="selector-zone">
   <div class="selector-label">Sélectionner un pack</div>
   <div class="pack-row" id="pack-row"></div>
@@ -981,13 +993,8 @@ let uploadedType=null;
 
 // ═══════════════════════════════════════════════════════
 // GESTION CLÉ API & PARAMÈTRES
+// (getApiKey, getModel, LS_KEY, LS_SETTINGS fournis par iec-analyzer.js)
 // ═══════════════════════════════════════════════════════
-const LS_KEY='shemesh_anthropic_key';
-const LS_SETTINGS='shemesh_settings';
-
-function getApiKey(){
-  return (localStorage.getItem(LS_KEY)||'').trim();
-}
 
 function loadSettings(){
   try{
@@ -1014,24 +1021,16 @@ function autoSaveSettings(){
   if(fb){fb.textContent='✓ Sauvegardé';setTimeout(()=>fb.textContent='',2000);}
 }
 
-function getModel(){
-  const OLD_MODELS={'claude-sonnet-4-6':'claude-sonnet-5','claude-opus-4-6':'claude-opus-5'};
-  try{
-    const s=JSON.parse(localStorage.getItem(LS_SETTINGS)||'{}');
-    const m=s.model||'claude-sonnet-5';
-    return OLD_MODELS[m]||m;
-  }catch(e){return 'claude-sonnet-5';}
-}
-
 function saveApiKey(){
   const val=document.getElementById('api-key-input').value.trim();
   if(!val){showApiFeedback('⚠️ Saisis une clé avant de sauvegarder','#E05252');return;}
   if(!val.startsWith('sk-ant-')){showApiFeedback('⚠️ Format invalide — doit commencer par sk-ant-','#E05252');return;}
-  localStorage.setItem(LS_KEY,val);
+  saveApiKeyRaw(val);
   updateKeyStatus();
   showApiFeedback('✅ Clé sauvegardée avec succès','#2D9E6B');
   updateSettingsBadge();
 }
+
 
 function showApiFeedback(msg,color){
   const fb=document.getElementById('api-save-feedback');
@@ -1175,18 +1174,9 @@ function switchIecTab(tab){
 
 // ═══════════════════════════════════════════════════════
 // HISTORIQUE DES FACTURES ANALYSÉES
+// (loadHistory, saveHistoryArr, addToHistory, formatHistDate fournis par iec-analyzer.js)
 // ═══════════════════════════════════════════════════════
-const HISTORY_KEY='shemesh_iec_history';
-
-function loadHistory(){
-  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); }
-  catch(e){ return []; }
-}
-
-function saveHistoryArr(arr){
-  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); }catch(e){}
-  updateHistBadge();
-}
+const escHtml = escHtmlIEC;
 
 function updateHistBadge(){
   const n=loadHistory().length;
@@ -1194,25 +1184,6 @@ function updateHistBadge(){
   if(b) b.textContent=n>0?'('+n+')':'';
   const hb=document.getElementById('hd-hist-count');
   if(hb) hb.textContent=n>0?'('+n+')':'';
-}
-
-function addToHistory(result, filename){
-  const arr=loadHistory();
-  arr.unshift({
-    id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
-    date:new Date().toISOString(),
-    filename:filename||'',
-    result:result
-  });
-  if(arr.length>200) arr.length=200;
-  saveHistoryArr(arr);
-}
-
-function formatHistDate(iso){
-  try{
-    const d=new Date(iso);
-    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  }catch(e){ return iso; }
 }
 
 function renderHistoryList(){
@@ -1322,10 +1293,6 @@ function copyHistWA(id){
   });
 }
 
-function escHtml(s){
-  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
 function openHistoryItem(id){
   const arr=loadHistory();
   const item=arr.find(i=>i.id===id);
@@ -1339,6 +1306,7 @@ function deleteHistoryItem(id){
   if(!confirm('Supprimer cette analyse de l\'historique ?')) return;
   const arr=loadHistory().filter(i=>i.id!==id);
   saveHistoryArr(arr);
+  updateHistBadge();
   renderHistoryList();
 }
 
@@ -1408,45 +1376,7 @@ uz.addEventListener('drop',e=>{
   if(f){const dt=new DataTransfer();dt.items.add(f);document.getElementById('file-input').files=dt.files;onFileSelected({target:{files:[f]}});}
 });
 
-const SYSTEM_PROMPT = `Tu es un expert en installation solaire pour Shemesh Energy (Netanya, Israël).
-Analyse cette facture IEC (חברת החשמל לישראל) et retourne UNIQUEMENT un JSON valide, sans aucun texte avant ou après, sans backticks.
-
-Le JSON doit avoir exactement cette structure :
-{
-  "client": "Nom du client",
-  "adresse": "Adresse",
-  "consomation_annuelle_kwh": 30000,
-  "consomation_mensuelle_kwh": 2500,
-  "montant_facture": "6 125 ₪",
-  "periode_jours": 59,
-  "connexion_kva": "17.32 KVA",
-  "amperage": "3×25A",
-  "phase": "triphasé",
-  "tarif": "Marom",
-  "pack_recommande_kwc": 20,
-  "pack_nom": "Gold 20 kWc",
-  "pack_prix_ttc": 79900,
-  "production_annuelle_kwh": 35000,
-  "economie_annuelle_nis": 14350,
-  "roi_ans": 5.6,
-  "score_lead": 88,
-  "justification": "Consommation très élevée, connexion triphasée, tarif Marom",
-  "whatsapp_hebrew": "שלום [שם], ראינו את החשבון שלכם..."
-}
-
-Packs disponibles : 5 kWc (18 900₪), 10 kWc (35 900₪), 15 kWc (54 900₪), 20 kWc (79 900₪), 25 kWc (99 900₪), 30 kWc (119 900₪).
-Irradiation Netanya : 1 750 kWh/kWc/an. TVA israélienne : 17%.
-Choisir le pack qui offre le meilleur ROI sans sur-dimensionner (max 85% autoconsommation).
-Le message WhatsApp doit être en hébreu, personnel, percutant, mentionner le montant de la facture et les économies estimées.`;
-
-const LOADER_STEPS = [
-  'Lecture de la facture…',
-  'Extraction des données de consommation…',
-  'Identification du type de connexion…',
-  'Calcul du pack optimal…',
-  'Génération du message WhatsApp…',
-  'Finalisation du rapport…'
-];
+// (IEC_SYSTEM_PROMPT, IEC_LOADER_STEPS, analyserFactureIEC fournis par iec-analyzer.js)
 
 async function analyserFacture(){
   if(!uploadedBase64) return;
@@ -1468,70 +1398,17 @@ async function analyserFacture(){
   let stepIdx=0;
   const stepEl=document.getElementById('loader-steps');
   const stepInterval=setInterval(()=>{
-    stepEl.textContent=LOADER_STEPS[stepIdx%LOADER_STEPS.length];
+    stepEl.textContent=IEC_LOADER_STEPS[stepIdx%IEC_LOADER_STEPS.length];
     stepIdx++;
   },1800);
 
   try {
-    const isImage=uploadedType.startsWith('image/');
-    const contentBlock=isImage
-      ?{type:'image',source:{type:'base64',media_type:uploadedType,data:uploadedBase64}}
-      :{type:'document',source:{type:'base64',media_type:'application/pdf',data:uploadedBase64}};
-
-    const apiKey = localStorage.getItem(LS_KEY);
-    const cleanKey = apiKey ? apiKey.trim() : '';
-    console.log('Clé lue:', cleanKey ? cleanKey.substring(0,16)+'…' : 'VIDE');
-
-    const response=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key': cleanKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:getModel(),
-        max_tokens:4096,
-        system:SYSTEM_PROMPT,
-        messages:[{
-          role:'user',
-          content:[
-            contentBlock,
-            {type:'text',text:'Analyse cette facture IEC et retourne le JSON demandé.'}
-          ]
-        }]
-      })
-    });
-
+    const result = await analyserFactureIEC(uploadedBase64, uploadedType);
     clearInterval(stepInterval);
-
-    if(!response.ok){
-      const err=await response.json();
-      console.error('API error:', err);
-      throw new Error(err.error?.message||'Erreur '+response.status);
-    }
-
-    const data=await response.json();
-    const rawText=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    
-    // Parse JSON
-    let result;
-    try {
-      let cleaned=rawText.replace(/```json|```/g,'').trim();
-      const firstBrace=cleaned.indexOf('{');
-      const lastBrace=cleaned.lastIndexOf('}');
-      if(firstBrace!==-1 && lastBrace!==-1 && lastBrace>firstBrace){
-        cleaned=cleaned.substring(firstBrace,lastBrace+1);
-      }
-      result=JSON.parse(cleaned);
-    } catch(e){
-      console.error('JSON parse error:', e, '\nRaw text:', rawText);
-      throw new Error('Format de réponse invalide — réessaye (voir console pour détails)');
-    }
 
     lastIECResult=result;
     addToHistory(result, uploadedFile?uploadedFile.name:'');
+    updateHistBadge();
     afficherResultat(result);
 
   } catch(err) {
