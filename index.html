@@ -1295,7 +1295,7 @@ async function analyserFacture(){
       },
       body:JSON.stringify({
         model:getModel(),
-        max_tokens:1500,
+        max_tokens:4096,
         system:SYSTEM_PROMPT,
         messages:[{
           role:'user',
@@ -1321,10 +1321,16 @@ async function analyserFacture(){
     // Parse JSON
     let result;
     try {
-      const cleaned=rawText.replace(/```json|```/g,'').trim();
+      let cleaned=rawText.replace(/```json|```/g,'').trim();
+      const firstBrace=cleaned.indexOf('{');
+      const lastBrace=cleaned.lastIndexOf('}');
+      if(firstBrace!==-1 && lastBrace!==-1 && lastBrace>firstBrace){
+        cleaned=cleaned.substring(firstBrace,lastBrace+1);
+      }
       result=JSON.parse(cleaned);
     } catch(e){
-      throw new Error('Format de réponse invalide — réessaye');
+      console.error('JSON parse error:', e, '\nRaw text:', rawText);
+      throw new Error('Format de réponse invalide — réessaye (voir console pour détails)');
     }
 
     lastIECResult=result;
