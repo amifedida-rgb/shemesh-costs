@@ -1,0 +1,115 @@
+/* ═══════════════════════════════════════════════════════
+   FINANCEMENT.CSS — Module de financement solaire Shemesh
+   Thème sombre bleu/noir, accent jaune. Mobile-first.
+   Tout est préfixé .fin- pour ne rien casser ailleurs.
+   ═══════════════════════════════════════════════════════ */
+
+.fin-wrap{
+  --fin-bg:#0D1B2A; --fin-card:#152A3F; --fin-line:rgba(255,255,255,0.08);
+  --fin-gold:#F5A623; --fin-txt:#FFFFFF; --fin-mut:#8FA3B8;
+  --fin-green:#22C55E; --fin-red:#F04438;
+  background:var(--fin-bg); color:var(--fin-txt);
+  border-radius:18px; padding:20px;
+  font-family:'DM Sans','Outfit','Heebo',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.fin-wrap *{box-sizing:border-box;}
+
+/* En-tête */
+.fin-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+.fin-title{font-size:24px;font-weight:800;letter-spacing:-0.5px;line-height:1.15;}
+.fin-sub{font-size:12px;color:var(--fin-mut);margin-top:4px;}
+.fin-bank{background:rgba(245,166,35,0.10);border:1px solid rgba(245,166,35,0.30);
+  border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;gap:1px;min-width:132px;}
+.fin-bank-name{font-size:10px;color:var(--fin-gold);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.fin-bank-rate{font-size:18px;font-weight:800;color:var(--fin-gold);line-height:1.1;}
+.fin-bank-formula{font-size:10px;color:var(--fin-mut);}
+
+/* Champs éditables (mode simulateur libre) */
+.fin-inputs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px;}
+.fin-inputs label{display:flex;flex-direction:column;gap:5px;font-size:10px;color:var(--fin-mut);
+  text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.fin-inputs input{background:var(--fin-card);border:1px solid var(--fin-line);border-radius:10px;
+  padding:10px 12px;color:var(--fin-txt);font-size:15px;font-weight:600;font-family:inherit;
+  outline:none;width:100%;-webkit-appearance:none;}
+.fin-inputs input:focus{border-color:var(--fin-gold);}
+
+/* Switch d'offre */
+.fin-switch{display:flex;gap:6px;background:var(--fin-card);border-radius:12px;padding:5px;margin-top:16px;}
+.fin-sw{flex:1;border:none;background:transparent;color:var(--fin-mut);font-family:inherit;
+  font-size:13px;font-weight:700;padding:11px 8px;border-radius:9px;cursor:pointer;transition:all .18s;}
+.fin-sw:hover{color:var(--fin-txt);}
+.fin-sw.on{background:var(--fin-gold);color:#0D1B2A;}
+
+/* Cartes tarif / revenu */
+.fin-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px;}
+.fin-card{background:var(--fin-card);border:1px solid var(--fin-line);border-radius:14px;padding:14px;}
+.fin-card-lbl{font-size:10px;color:var(--fin-mut);text-transform:uppercase;letter-spacing:.06em;font-weight:700;}
+.fin-card-val{font-size:26px;font-weight:800;margin-top:6px;letter-spacing:-0.5px;line-height:1.1;}
+.fin-card-val small{font-size:12px;font-weight:600;color:var(--fin-mut);margin-left:3px;}
+.fin-card-note{font-size:10px;color:var(--fin-mut);margin-top:5px;line-height:1.4;}
+
+/* Bloc prêt */
+.fin-loan{background:var(--fin-card);border:1px solid var(--fin-line);border-radius:14px;padding:16px;margin-top:10px;}
+.fin-loan-head{display:flex;justify-content:space-between;align-items:baseline;}
+.fin-loan-head span:first-child{font-size:11px;color:var(--fin-mut);text-transform:uppercase;
+  letter-spacing:.06em;font-weight:700;}
+.fin-loan-years{font-size:20px;font-weight:800;color:var(--fin-gold);}
+
+.fin-range{width:100%;margin:14px 0 4px;-webkit-appearance:none;appearance:none;background:transparent;}
+.fin-range::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:rgba(255,255,255,0.14);}
+.fin-range::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:var(--fin-gold);margin-top:-9px;cursor:pointer;border:3px solid var(--fin-bg);
+  box-shadow:0 2px 8px rgba(0,0,0,0.4);}
+.fin-range::-moz-range-track{height:6px;border-radius:3px;background:rgba(255,255,255,0.14);}
+.fin-range::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--fin-gold);
+  cursor:pointer;border:3px solid var(--fin-bg);}
+.fin-range-ends{display:flex;justify-content:space-between;font-size:10px;color:var(--fin-mut);}
+
+.fin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;
+  padding-top:14px;border-top:1px solid var(--fin-line);}
+.fin-grid div{display:flex;flex-direction:column;gap:3px;}
+.fin-grid span{font-size:10px;color:var(--fin-mut);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.fin-grid strong{font-size:16px;font-weight:800;letter-spacing:-0.3px;}
+
+/* Cash-flow */
+.fin-cash{border-radius:14px;padding:16px;margin-top:10px;border:1px solid;}
+.fin-cash.fin-pos{background:rgba(34,197,94,0.10);border-color:rgba(34,197,94,0.35);}
+.fin-cash.fin-neg{background:rgba(240,68,56,0.10);border-color:rgba(240,68,56,0.35);}
+.fin-cash-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--fin-mut);}
+.fin-cash-val{font-size:32px;font-weight:800;margin-top:4px;letter-spacing:-1px;line-height:1.1;}
+.fin-cash.fin-pos .fin-cash-val{color:var(--fin-green);}
+.fin-cash.fin-neg .fin-cash-val{color:var(--fin-red);}
+.fin-cash-val small{font-size:13px;font-weight:600;color:var(--fin-mut);margin-left:3px;}
+.fin-cash-note{font-size:11px;color:var(--fin-mut);margin-top:5px;}
+
+/* Tableau comparatif */
+.fin-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px;}
+.fin-table th{text-align:left;font-size:9px;color:var(--fin-mut);text-transform:uppercase;
+  letter-spacing:.06em;font-weight:700;padding:8px 6px;border-bottom:1px solid var(--fin-line);}
+.fin-table td{padding:11px 6px;border-bottom:1px solid var(--fin-line);font-weight:600;}
+.fin-table tr.sel td{background:rgba(245,166,35,0.07);}
+.fin-table tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--fin-gold);}
+.fin-pos-t{color:var(--fin-green);}
+.fin-neg-t{color:var(--fin-red);}
+
+/* Enregistrement */
+.fin-save{width:100%;margin-top:14px;background:var(--fin-gold);color:#0D1B2A;border:none;
+  border-radius:12px;padding:13px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;}
+.fin-save:hover{opacity:.9;}
+.fin-saved{text-align:center;font-size:11px;color:var(--fin-green);margin-top:8px;min-height:14px;font-weight:600;}
+
+/* Mobile */
+@media(max-width:520px){
+  .fin-wrap{padding:16px;border-radius:14px;}
+  .fin-title{font-size:20px;}
+  .fin-bank{min-width:0;flex-direction:row;align-items:baseline;gap:6px;flex-wrap:wrap;}
+  .fin-inputs{grid-template-columns:1fr 1fr;}
+  .fin-cards{grid-template-columns:1fr;}
+  .fin-card-val{font-size:23px;}
+  .fin-cash-val{font-size:28px;}
+  .fin-grid{grid-template-columns:1fr;gap:8px;}
+  .fin-grid div{flex-direction:row;justify-content:space-between;align-items:baseline;}
+  .fin-table{font-size:11px;}
+  .fin-table th,.fin-table td{padding:8px 4px;}
+}
